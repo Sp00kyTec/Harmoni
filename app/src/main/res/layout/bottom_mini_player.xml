@@ -1,0 +1,63 @@
+<!-- app/src/main/res/layout/bottom_mini_player.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mini_player_container"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    android:orientation="horizontal"
+    android:background="?android:attr/colorPrimary"
+    android:elevation="8dp"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:gravity="center_vertical"
+    android:visibility="gone"
+    android:theme="@style/ThemeOverlay.Material3.Dark">
+
+    <!-- Thumbnail (Placeholder) -->
+    <ImageView
+        android:id="@+id/iv_thumbnail"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_file"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="12dp" />
+
+    <!-- Text Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginEnd="12dp">
+
+        <TextView
+            android:id="@+id/text_mini_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Now Playing"
+            android:textColor="#FFF"
+            android:textSize="14sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/text_mini_artist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Artist"
+            android:textColor="#BBB"
+            android:textSize="12sp"
+            android:maxLines="1" />
+
+    </LinearLayout>
+
+    <!-- Play/Pause Button -->
+    <ImageButton
+        android:id="@+id/btn_play_pause"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_pause"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:tint="#FFF"
+        android:contentDescription="Play or pause" />
+
+</LinearLayout>

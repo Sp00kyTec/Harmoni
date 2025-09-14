@@ -2,26 +2,34 @@
 package com.harmoni
 
 import android.Manifest
+import android.app.NotificationManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.database.Cursor
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
+import android.provider.MediaStore
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.harmoni.fragment.AudioFragment
-import com.harmoni.fragment.VideosFragment
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import androidx.viewpager2.widget.ViewPager2
-import android.provider.MediaStore
-import android.widget.Toast
+import com.harmoni.fragment.AudioFragment
+import com.harmoni.fragment.VideosFragment
 
 class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val REQUEST_READ_STORAGE = 100
 
-        // Shared lists across app
         var videoList = listOf<Video>()
         var audioList = listOf<Audio>()
     }
@@ -29,14 +37,108 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tabLayout: TabLayout
     private lateinit var viewPager: ViewPager2
 
+    // Mini Player Views
+    private lateinit var miniPlayer: LinearLayout
+    private lateinit var textMiniTitle: TextView
+    private lateinit var textMiniArtist: TextView
+    private lateinit var btnPlayPause: ImageButton
+
+    // Service Binding
+    private var serviceBound = false
+    private var audioService: AudioService? = null
+    private var currentPlayingAudio: Audio? = null
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+            val localBinder = binder as AudioService.LocalBinder
+            audioService = localBinder.getService()
+            serviceBound = true
+            updateMiniPlayerState()
+            setupMiniPlayerClicks()
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            serviceBound = false
+            audioService = null
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Create notification channel
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "audio_playback_channel",
+                "Background Audio Playback",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Shows controls when playing audio in the background"
+            }
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        bindViews()
+        setupClickListeners()
+        setupTabs()
+
+        // Bind to AudioService if running
+        val intent = Intent(this, AudioService::class.java)
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT)
+
+        requestStoragePermission()
+    }
+
+    private fun bindViews() {
         tabLayout = findViewById(R.id.tab_layout)
         viewPager = findViewById(R.id.view_pager)
 
-        requestStoragePermission()
+        // Mini Player
+        miniPlayer = findViewById(R.id.mini_player_container)
+        textMiniTitle = findViewById(R.id.text_mini_title)
+        textMiniArtist = findViewById(R.id.text_mini_artist)
+        btnPlayPause = findViewById(R.id.btn_play_pause)
+    }
+
+    private fun setupClickListeners() {
+        btnPlayPause.setOnClickListener {
+            togglePlayPause()
+        }
+
+        miniPlayer.setOnClickListener {
+            val intent = Intent(this, AudioPlayerActivity::class.java).apply {
+                putExtra(AudioPlayerActivity.EXTRA_AUDIO_PATH, currentPlayingAudio?.path)
+                putExtra(AudioPlayerActivity.EXTRA_TITLE, currentPlayingAudio?.title)
+                putExtra(AudioPlayerActivity.EXTRA_ARTIST, currentPlayingAudio?.artist)
+            }
+            startActivity(intent)
+        }
+    }
+
+    private fun togglePlayPause() {
+        if (!serviceBound) return
+
+        val player = audioService?.getPlayer() ?: return
+        if (player.playWhenReady) {
+            player.playWhenReady = false
+            btnPlayPause.setImageResource(R.drawable.ic_play)
+        } else {
+            player.playWhenReady = true
+            btnPlayPause.setImageResource(R.drawable.ic_pause)
+        }
+    }
+
+    private fun setupTabs() {
+        val adapter = MainTabsAdapter(this)
+        viewPager.adapter = adapter
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            when (position) {
+                0 -> tab.text = "Videos"
+                1 -> tab.text = "Audio"
+            }
+        }.attach()
     }
 
     private fun requestStoragePermission() {
@@ -45,7 +147,6 @@ class MainActivity : AppCompatActivity() {
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE
             ) == PackageManager.PERMISSION_GRANTED -> {
-                setupTabs()
                 scanMedia()
             }
 
@@ -53,11 +154,6 @@ class MainActivity : AppCompatActivity() {
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE
             ) -> {
-                Toast.makeText(
-                    this,
-                    "Harmoni needs storage access to play your media.",
-                    Toast.LENGTH_LONG
-                ).show()
                 ActivityCompat.requestPermissions(
                     this,
                     arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
@@ -83,23 +179,9 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_READ_STORAGE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                setupTabs()
                 scanMedia()
-            } else {
-                Toast.makeText(this, "Permission denied.", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun setupTabs() {
-        val adapter = MainTabsAdapter(this)
-        viewPager.adapter = adapter
-        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-            when (position) {
-                0 -> tab.text = "Videos"
-                1 -> tab.text = "Audio"
-            }
-        }.attach()
     }
 
     private fun scanMedia() {
@@ -253,5 +335,55 @@ class MainActivity : AppCompatActivity() {
             bytes < 1024 * 1024 * 1024 -> "${"%.1f".format(bytes / 1024.0 / 1024)} MB"
             else -> "${"%.1f".format(bytes / 1024.0 / 1024 / 1024)} GB"
         }
+    }
+
+    // --- Mini Player Logic ---
+    fun updateMiniPlayerState() {
+        if (!serviceBound) {
+            miniPlayer.visibility = LinearLayout.GONE
+            return
+        }
+
+        val player = audioService?.getPlayer() ?: run {
+            miniPlayer.visibility = LinearLayout.GONE
+            return
+        }
+
+        // Try to find which audio is playing
+        val playingPath = getCurrentPlayingPath(player)
+        currentPlayingAudio = audioList.find { it.path == playingPath }
+
+        if (currentPlayingAudio != null) {
+            textMiniTitle.text = currentPlayingAudio?.title
+            textMiniArtist.text = currentPlayingAudio?.artist ?: "Unknown Artist"
+            miniPlayer.visibility = LinearLayout.VISIBLE
+            btnPlayPause.setImageResource(
+                if (player.playWhenReady) R.drawable.ic_pause else R.drawable.ic_play
+            )
+        } else {
+            miniPlayer.visibility = LinearLayout.GONE
+        }
+    }
+
+    private fun getCurrentPlayingPath(player: Player): String? {
+        return try {
+            val mediaItem = player.currentMediaItem ?: return null
+            mediaItem.localConfiguration?.uri.toString()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateMiniPlayerState()
+    }
+
+    override fun onDestroy() {
+        if (serviceBound) {
+            unbindService(serviceConnection)
+            serviceBound = false
+        }
+        super.onDestroy()
     }
 }
