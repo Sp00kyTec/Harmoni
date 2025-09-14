@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace 'com.novaplayer'
+    namespace 'com.harmoni'
     compileSdk 34
 
     defaultConfig {

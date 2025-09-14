@@ -1,5 +1,4 @@
-// app/src/main/java/com/novaplayer/MainActivity.kt
-package com.novaplayer
+package com.harmoni
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

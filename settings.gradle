@@ -1,3 +1,2 @@
-// settings.gradle
 include ':app'
-rootProject.name = "Nova Player"
+rootProject.name = "Harmoni"
