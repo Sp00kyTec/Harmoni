@@ -5,11 +5,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.harmoni.MainActivity
+import com.harmoni.MediaAdapter
 import com.harmoni.R
 
 class VideosFragment : Fragment() {
+
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -17,8 +22,27 @@ class VideosFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_videos, container, false)
-        val textView = view.findViewById<TextView>(R.id.text_message)
-        textView.text = "🎥 Videos will appear here"
+        recyclerView = view.findViewById(R.id.recycler_view)
         return view
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setupList()
+    }
+
+    private fun setupList() {
+        val videos = MainActivity.videoList
+        if (videos.isEmpty()) {
+            // Optional: show placeholder
+        } else {
+            recyclerView.layoutManager = LinearLayoutManager(context)
+            recyclerView.adapter = MediaAdapter(videos) { item ->
+                // Click handler
+                context?.let {
+                    android.widget.Toast.makeText(it, "Play video:\n${item.path}", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 }

@@ -119,25 +119,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     // --- Data Classes ---
-    data class Video(
+        data class Video(
         val id: Long,
-        val title: String,
+        override val title: String,
         val displayName: String?,
         val duration: Int,
         val size: Long,
-        val path: String
-    )
+        override val path: String
+    ) : MediaItem {
+        override val subtitle: String
+            get() = "Duration: ${formatDuration(duration)} • ${formatSize(size)}"
+    }
 
     data class Audio(
         val id: Long,
-        val title: String,
+        override val title: String,
         val artist: String?,
         val album: String?,
         val duration: Int,
         val size: Long,
-        val path: String
-    )
-
+        override val path: String
+    ) : MediaItem {
+        override val subtitle: String
+            get() = "by ${artist ?: "Unknown Artist"} • ${formatDuration(duration)}"
+    }
     // --- Scanning Functions ---
     private fun scanVideos(): List<Video> {
         val videos = mutableListOf<Video>()
@@ -231,5 +236,23 @@ class MainActivity : AppCompatActivity() {
             "artist" to cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ARTIST) ?: -1,
             "album" to cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ALBUM) ?: -1
         )
+    }
+        // Format milliseconds to MM:SS
+    private fun formatDuration(ms: Int): String {
+        val seconds = (ms / 1000) % 60
+        val minutes = (ms / 1000 / 60) % 60
+        val hours = (ms / 1000 / 3600)
+        return if (hours > 0) String.format("%02d:%02d:%02d", hours, minutes, seconds)
+        else String.format("%02d:%02d", minutes, seconds)
+    }
+
+    // Format bytes to KB/MB/GB
+    private fun formatSize(bytes: Long): String {
+        return when {
+            bytes < 1024 -> "$bytes B"
+            bytes < 1024 * 1024 -> "${"%.1f".format(bytes / 1024.0)} KB"
+            bytes < 1024 * 1024 * 1024 -> "${"%.1f".format(bytes / 1024.0 / 1024)} MB"
+            else -> "${"%.1f".format(bytes / 1024.0 / 1024 / 1024)} GB"
+        }
     }
 }
