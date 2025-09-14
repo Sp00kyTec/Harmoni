@@ -21,6 +21,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+            android:name=".VideoPlayerActivity"
+            android:exported="false"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        </activity>
 
         <!-- Service for background playback will go here later -->
 

@@ -38,9 +38,10 @@ class VideosFragment : Fragment() {
         } else {
             recyclerView.layoutManager = LinearLayoutManager(context)
             recyclerView.adapter = MediaAdapter(videos) { item ->
-                // Click handler
-                context?.let {
-                    android.widget.Toast.makeText(it, "Play video:\n${item.path}", android.widget.Toast.LENGTH_SHORT).show()
+    val intent = Intent(context, VideoPlayerActivity::class.java)
+    intent.putExtra(VideoPlayerActivity.EXTRA_VIDEO_PATH, item.path)
+    context?.startActivity(intent)
+}
                 }
             }
         }
