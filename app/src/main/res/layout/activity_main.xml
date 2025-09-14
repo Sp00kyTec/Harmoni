@@ -1,4 +1,3 @@
-<!-- app/src/main/res/layout/activity_main.xml -->
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -6,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- App Title Bar -->
+    <!-- App Title -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -16,7 +15,8 @@
         android:padding="16dp"
         android:gravity="center"
         android:layout_gravity="center"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:textColor="?attr/colorPrimary" />
 
     <!-- Tab Layout -->
     <com.google.android.material.tabs.TabLayout
@@ -24,17 +24,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:tabIndicatorColor="#FF6F00"
-        app:tabSelectedTextColor="#000"
-        app:tabTextColor="#666"
-        app:tabMode="fixed"
-        app:tabGravity="fill" />
+        app:tabSelectedTextColor="?attr/colorOnSurface"
+        app:tabTextColor="?attr/colorOnSurfaceVariant"
+        app:tabMode="scrollable"
+        app:tabGravity="center"
+        android:elevation="2dp" />
 
     <!-- View Pager -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:overScrollMode="never" />
 
     <!-- Mini Player (appears when audio is playing) -->
     <include

@@ -1,4 +1,3 @@
-// app/src/main/java/com/harmoni/PlaylistDao.kt
 package com.harmoni
 
 import androidx.room.*
@@ -19,7 +18,6 @@ interface PlaylistDao {
     @Query("DELETE FROM playlists WHERE id = :playlistId")
     suspend fun deletePlaylistById(playlistId: Long)
 
-    // --- Entries ---
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addTrackToPlaylist(entry: PlaylistEntry): Long
 
@@ -32,7 +30,6 @@ interface PlaylistDao {
     @Query("SELECT COUNT(*) FROM playlist_entries WHERE playlistId = :playlistId AND audioPath = :audioPath")
     suspend fun isInPlaylist(playlistId: Long, audioPath: String): Int
 
-    // --- Playlist with Tracks (Join) ---
     @Transaction
     @Query("""
         SELECT p.*, COUNT(pe.audioPath) as trackCount 

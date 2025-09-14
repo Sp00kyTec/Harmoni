@@ -1,12 +1,9 @@
-// app/src/main/java/com/harmoni/MainTabsAdapter.kt
 package com.harmoni
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.harmoni.fragment.AudioFragment
-import com.harmoni.fragment.VideosFragment
-import com.harmoni.fragment.PlaylistFragment
+import com.harmoni.fragment.*
 
 class MainTabsAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter(fragmentActivity) {
 
@@ -15,9 +12,13 @@ class MainTabsAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter
             0 -> VideosFragment()
             1 -> AudioFragment()
             2 -> PlaylistFragment()
+            3 -> EqualizerFragment()
+            4 -> FileBrowserFragment()
+            5 -> RecentlyPlayedFragment()
+            6 -> SettingsFragment()
             else -> VideosFragment()
         }
     }
 
-    override fun getItemCount(): Int = 3
+    override fun getItemCount(): Int = 7
 }

@@ -1,36 +1,40 @@
-<!-- app/src/main/res/layout/fragment_playlists.xml -->
+<!-- app/src/main/res/layout/fragment_recently_played.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="#F8F9FA">
+    android:background="#F8F9FA"
+    android:padding="8dp">
 
-    <!-- Section Header -->
+    <!-- Header -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🎧 Your Playlists"
+        android:text="🔥 Recently Played"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="?attr/colorOnSurface"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp" />
 
-    <!-- Create Playlist Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_create_playlist"
+    <!-- Clear All Button -->
+    <Button
+        android:id="@+id/btn_clear_recent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Create New Playlist"
-        android:icon="@drawable/ic_add"
-        android:layout_marginBottom="16dp"
-        style="@style/Widget.Material3.Button.OutlinedButton" />
+        android:text="Clear All"
+        android:layout_gravity="end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        style="@style/Widget.Material3.Button.OutlinedButton.Small" />
 
-    <!-- Playlists List -->
+    <!-- Recycler View -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:padding="4dp"
         android:scrollbars="vertical" />
 
     <!-- Empty State -->
@@ -40,10 +44,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="32dp"
-        android:text="No playlists yet"
+        android:text="No recently played items yet"
         android:textSize="16sp"
         android:textColor="#666"
-        android:drawableTop="@drawable/ic_playlist"
+        android:drawableTop="@drawable/ic_history"
         android:drawablePadding="16dp"
         android:visibility="gone" />
 

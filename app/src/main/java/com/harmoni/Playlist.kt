@@ -1,4 +1,3 @@
-// app/src/main/java/com/harmoni/Playlist.kt
 package com.harmoni
 
 import androidx.room.Entity

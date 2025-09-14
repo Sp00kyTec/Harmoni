@@ -17,8 +17,8 @@
         android:id="@+id/iv_thumbnail"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/ic_file"
-        android:scaleType="centerCrop"
+        android:src="@drawable/ic_music_note"
+        android:scaleType="fitCenter"
         android:layout_marginEnd="12dp" />
 
     <!-- Text Info -->

@@ -1,9 +1,6 @@
-// app/src/main/java/com/harmoni/PlaylistEntry.kt
 package com.harmoni
 
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
+import androidx.room.*
 
 @Entity(
     tableName = "playlist_entries",

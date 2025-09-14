@@ -1,0 +1,16 @@
+<!-- app/src/main/res/values/arrays.xml -->
+<resources>
+    <string-array name="audio_quality_labels">
+        <item>Auto</item>
+        <item>High (256 kbps+)</item>
+        <item>Standard (128–256 kbps)</item>
+        <item>Low (under 128 kbps)</item>
+    </string-array>
+
+    <string-array name="audio_quality_values">
+        <item>auto</item>
+        <item>high</item>
+        <item>standard</item>
+        <item>low</item>
+    </string-array>
+</resources>

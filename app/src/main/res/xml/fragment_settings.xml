@@ -1,0 +1,98 @@
+<!-- app/src/main/res/xml/fragment_settings.xml -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Appearance -->
+    <PreferenceCategory android:title="Appearance">
+        <SwitchPreferenceCompat
+            android:key="dark_mode"
+            android:title="Dark Theme"
+            android:summary="Use dark theme across the app"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <!-- Audio -->
+    <PreferenceCategory android:title="Audio">
+        <SwitchPreferenceCompat
+            android:key="enable_equalizer"
+            android:title="Audio Equalizer"
+            android:summary="Enhance sound with custom EQ settings"
+            android:defaultValue="true" />
+
+        <ListPreference
+            android:key="audio_quality"
+            android:title="Audio Quality"
+            android:summary="%s"
+            android:entries="@array/audio_quality_labels"
+            android:entryValues="@array/audio_quality_values"
+            android:defaultValue="auto" />
+
+        <SwitchPreferenceCompat
+            android:key="gapless_playback"
+            android:title="Gapless Playback"
+            android:summary="Seamlessly play tracks without gaps"
+            android:defaultValue="true" />
+
+        <EditTextPreference
+            android:key="sleep_timer_default"
+            android:title="Sleep Timer (minutes)"
+            android:summary="%s minutes"
+            android:defaultValue="10"
+            android:inputType="number" />
+    </PreferenceCategory>
+
+    <!-- Playback -->
+    <PreferenceCategory android:title="Playback">
+        <SwitchPreferenceCompat
+            android:key="resume_on_start"
+            android:title="Resume Last Track"
+            android:summary="Continue from last played audio on startup"
+            android:defaultValue="true" />
+
+        <SwitchPreferenceCompat
+            android:key="headset_pause"
+            android:title="Pause on Headset Disconnect"
+            android:summary="Automatically pause when headphones are unplugged"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+
+    <!-- Storage & Data -->
+    <PreferenceCategory android:title="Storage & Data">
+        <Preference
+            android:key="manage_storage"
+            android:title="Manage Storage"
+            android:summary="View cache and local files" />
+
+        <Preference
+            android:key="backup_playlists"
+            android:title="Backup Playlists"
+            android:summary="Export your playlists to a file" />
+
+        <Preference
+            android:key="restore_playlists"
+            android:title="Restore Playlists"
+            android:summary="Import playlists from backup" />
+    </PreferenceCategory>
+
+    <!-- Privacy & Analytics -->
+    <PreferenceCategory android:title="Privacy">
+        <SwitchPreferenceCompat
+            android:key="send_analytics"
+            android:title="Help Improve Harmoni"
+            android:summary="Send anonymous usage data (no personal info)"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <!-- About -->
+    <PreferenceCategory android:title="About">
+        <Preference
+            android:key="open_source_licenses"
+            android:title="Open Source Licenses"
+            android:summary="Libraries used in this app" />
+
+        <Preference
+            android:key="version"
+            android:title="Version"
+            android:summary="1.0.0 (Build 1)" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

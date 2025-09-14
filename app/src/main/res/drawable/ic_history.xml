@@ -1,0 +1,11 @@
+<!-- res/drawable/ic_history.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#5E35B1">
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M13,3C7.48,3 3,7.48 3,13C3,18.52 7.48,23 13,23C18.52,23 23,18.52 23,13C23,7.48 18.52,3 13,3M19,13H13.5L16.5,16.5L15,18L9,12L15,6L16.5,7.5L13.5,11H19V13Z" />
+</vector>

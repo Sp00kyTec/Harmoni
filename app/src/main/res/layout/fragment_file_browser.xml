@@ -1,0 +1,62 @@
+<!-- app/src/main/res/layout/fragment_file_browser.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F8F9FA">
+
+    <!-- Breadcrumb Navigation Bar -->
+    <LinearLayout
+        android:id="@+id/layout_breadcrumb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="?attr/colorSurfaceContainerLow"
+        android:elevation="1dp">
+
+        <ImageButton
+            android:id="@+id/btn_up"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_arrow_upward"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="?attr/colorPrimary"
+            android:contentDescription="Go up directory"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/text_current_dir"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="/storage/emulated/0"
+            android:textSize="14sp"
+            android:textColor="?attr/colorOnSurface"
+            android:singleLine="true"
+            android:ellipsize="start" />
+    </LinearLayout>
+
+    <!-- File List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="4dp"
+        android:scrollbars="vertical" />
+
+    <!-- Empty State -->
+    <TextView
+        android:id="@+id/text_empty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="32dp"
+        android:text="No files or folders accessible"
+        android:textSize="16sp"
+        android:textColor="#666"
+        android:drawableTop="@drawable/ic_folder"
+        android:drawablePadding="16dp"
+        android:visibility="gone" />
+
+</LinearLayout>

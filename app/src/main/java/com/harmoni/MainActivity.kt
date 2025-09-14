@@ -1,4 +1,3 @@
-// app/src/main/java/com/harmoni/MainActivity.kt
 package com.harmoni
 
 import android.Manifest
@@ -8,14 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.database.Cursor
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.MediaStore
-import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -37,7 +33,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tabLayout: TabLayout
     private lateinit var viewPager: ViewPager2
 
-    // Mini Player Views
+    // Mini Player
     private lateinit var miniPlayer: LinearLayout
     private lateinit var textMiniTitle: TextView
     private lateinit var textMiniArtist: TextView
@@ -64,10 +60,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        if (shouldUseDarkTheme()) {
+            delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+        } else {
+            delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+        }
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Create notification channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "audio_playback_channel",
@@ -84,18 +85,21 @@ class MainActivity : AppCompatActivity() {
         setupClickListeners()
         setupTabs()
 
-        // Bind to AudioService if running
         val intent = Intent(this, AudioService::class.java)
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT)
 
         requestStoragePermission()
     }
 
+    private fun shouldUseDarkTheme(): Boolean {
+        val sharedPrefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        return sharedPrefs.getBoolean("dark_mode", false)
+    }
+
     private fun bindViews() {
         tabLayout = findViewById(R.id.tab_layout)
         viewPager = findViewById(R.id.view_pager)
 
-        // Mini Player
         miniPlayer = findViewById(R.id.mini_player_container)
         textMiniTitle = findViewById(R.id.text_mini_title)
         textMiniArtist = findViewById(R.id.text_mini_artist)
@@ -119,7 +123,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun togglePlayPause() {
         if (!serviceBound) return
-
         val player = audioService?.getPlayer() ?: return
         if (player.playWhenReady) {
             player.playWhenReady = false
@@ -137,6 +140,11 @@ class MainActivity : AppCompatActivity() {
             when (position) {
                 0 -> tab.text = "Videos"
                 1 -> tab.text = "Audio"
+                2 -> tab.text = "Playlists"
+                3 -> tab.text = "Equalizer"
+                4 -> tab.text = "Files"
+                5 -> tab.text = "Recent"
+                6 -> tab.text = "Settings"
             }
         }.attach()
     }
@@ -149,18 +157,6 @@ class MainActivity : AppCompatActivity() {
             ) == PackageManager.PERMISSION_GRANTED -> {
                 scanMedia()
             }
-
-            ActivityCompat.shouldShowRequestPermissionRationale(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) -> {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                    REQUEST_READ_STORAGE
-                )
-            }
-
             else -> {
                 ActivityCompat.requestPermissions(
                     this,
@@ -180,6 +176,8 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == REQUEST_READ_STORAGE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 scanMedia()
+            } else {
+                Toast.makeText(this, "Storage access denied.", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -199,7 +197,6 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    // --- Data Classes ---
     data class Video(
         val id: Long,
         override val title: String,
@@ -225,7 +222,6 @@ class MainActivity : AppCompatActivity() {
             get() = "by ${artist ?: "Unknown Artist"} • ${formatDuration(duration)}"
     }
 
-    // --- Scanning Functions ---
     private fun scanVideos(): List<Video> {
         val videos = mutableListOf<Video>()
         val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -319,7 +315,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // Utility functions
     private fun formatDuration(ms: Int): String {
         val seconds = (ms / 1000) % 60
         val minutes = (ms / 1000 / 60) % 60
@@ -337,7 +332,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // --- Mini Player Logic ---
     fun updateMiniPlayerState() {
         if (!serviceBound) {
             miniPlayer.visibility = LinearLayout.GONE
@@ -349,7 +343,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // Try to find which audio is playing
         val playingPath = getCurrentPlayingPath(player)
         currentPlayingAudio = audioList.find { it.path == playingPath }
 

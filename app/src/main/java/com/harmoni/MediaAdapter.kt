@@ -7,18 +7,21 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.harmoni.R
+import coil.load
+import java.io.File
 
 class MediaAdapter(
     private val items: List<MediaItem>,
-    private val onItemClick: (MediaItem) -> Unit
+    private val onItemClick: (MediaItem) -> Unit,
+    private val onOverflowClick: (MediaItem, View) -> Unit
 ) : RecyclerView.Adapter<MediaAdapter.MediaViewHolder>() {
 
     class MediaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val iconType: ImageView = itemView.findViewById(R.id.icon_type)
-        val textTitle: TextView = itemView.findViewById(R.id.text_title)
-        val textSubtitle: TextView = itemView.findViewById(R.id.text_subtitle)
-        val textPath: TextView = itemView.findViewById(R.id.text_path)
+        val thumbnail: ImageView = itemView.findViewById(R.id.iv_thumbnail)
+        val title: TextView = itemView.findViewById(R.id.text_title)
+        val subtitle: TextView = itemView.findViewById(R.id.text_subtitle)
+        val path: TextView = itemView.findViewById(R.id.text_path)
+        val overflow: ImageButton = itemView.findViewById(R.id.btn_overflow)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
@@ -30,20 +33,23 @@ class MediaAdapter(
     override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
         val item = items[position]
 
-        holder.textTitle.text = item.title
-        holder.textSubtitle.text = item.subtitle
-        holder.textPath.text = item.path
+        holder.title.text = item.title
+        holder.subtitle.text = item.subtitle
+        holder.path.text = item.path
 
-        when (item) {
-            is MainActivity.Video -> {
-                holder.iconType.setImageResource(R.drawable.ic_file)
-            }
-            is MainActivity.Audio -> {
-                holder.iconType.setImageResource(R.drawable.ic_file)
-            }
+        // Load album art using Coil
+        holder.thumbnail.load(File(item.path)) {
+            crossfade(true)
+            placeholder(R.drawable.ic_music_note)
+            error(R.drawable.ic_file)
+            // Custom decoder can extract embedded art later
         }
 
         holder.itemView.setOnClickListener { onItemClick(item) }
+
+        holder.overflow.setOnClickListener { v ->
+            onOverflowClick(item, v)
+        }
     }
 
     override fun getItemCount() = items.size
