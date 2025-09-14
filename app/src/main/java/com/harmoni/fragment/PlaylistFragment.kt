@@ -12,8 +12,8 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.harmoni.HarmoniDatabase
-import com.harmoni.MainActivity
 import com.harmoni.Playlist
+import com.harmoni.PlaylistWithCount
 import com.harmoni.R
 import kotlinx.coroutines.*
 
@@ -22,7 +22,7 @@ class PlaylistFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var btnCreate: Button
     private lateinit var adapter: PlaylistAdapter
-    private val playlists = mutableListOf<Playlist>()
+    private val playlists = mutableListOf<PlaylistWithCount>()
     private val db by lazy { HarmoniDatabase.getDatabase(requireContext()) }
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
@@ -41,8 +41,7 @@ class PlaylistFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = PlaylistAdapter(playlists) { playlist ->
-            // Click: open playlist tracks (TBD in next step)
-            showPlaylistTracks(playlist)
+            openPlaylistDetail(playlist.id)
         }
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
@@ -56,7 +55,7 @@ class PlaylistFragment : Fragment() {
 
     private fun observePlaylists() {
         scope.launch {
-            db.playlistDao().getAllPlaylists().collect { list ->
+            db.playlistDao().getPlaylistsWithCounts().collect { list ->
                 playlists.clear()
                 playlists.addAll(list)
                 adapter.notifyDataSetChanged()
@@ -88,10 +87,11 @@ class PlaylistFragment : Fragment() {
             .show()
     }
 
-    private fun showPlaylistTracks(playlist: Playlist) {
-        // TODO: Show tracks in playlist (next feature)
-        // For now, just toast
-        Toast.makeText(context, "Playing ${playlist.name}", Toast.LENGTH_SHORT).show()
+    private fun openPlaylistDetail(playlistId: Long) {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.view_pager, PlaylistDetailFragment.newInstance(playlistId))
+            .addToBackStack(null)
+            .commit()
     }
 
     override fun onDestroy() {

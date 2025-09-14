@@ -19,7 +19,7 @@ interface PlaylistDao {
     @Query("DELETE FROM playlists WHERE id = :playlistId")
     suspend fun deletePlaylistById(playlistId: Long)
 
-    // Entries
+    // --- Entries ---
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addTrackToPlaylist(entry: PlaylistEntry): Long
 
@@ -31,4 +31,22 @@ interface PlaylistDao {
 
     @Query("SELECT COUNT(*) FROM playlist_entries WHERE playlistId = :playlistId AND audioPath = :audioPath")
     suspend fun isInPlaylist(playlistId: Long, audioPath: String): Int
+
+    // --- Playlist with Tracks (Join) ---
+    @Transaction
+    @Query("""
+        SELECT p.*, COUNT(pe.audioPath) as trackCount 
+        FROM playlists p 
+        LEFT JOIN playlist_entries pe ON p.id = pe.playlistId 
+        GROUP BY p.id 
+        ORDER BY p.createdAt DESC
+    """)
+    fun getPlaylistsWithCounts(): Flow<List<PlaylistWithCount>>
 }
+
+data class PlaylistWithCount(
+    val id: Long,
+    val name: String,
+    val createdAt: Long,
+    val trackCount: Int
+)
