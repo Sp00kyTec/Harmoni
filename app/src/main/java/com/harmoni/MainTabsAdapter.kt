@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.harmoni.fragment.AudioFragment
 import com.harmoni.fragment.VideosFragment
+import com.harmoni.fragment.PlaylistFragment
 
 class MainTabsAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter(fragmentActivity) {
 
@@ -13,9 +14,10 @@ class MainTabsAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter
         return when (position) {
             0 -> VideosFragment()
             1 -> AudioFragment()
+            2 -> PlaylistFragment()
             else -> VideosFragment()
         }
     }
 
-    override fun getItemCount(): Int = 2
+    override fun getItemCount(): Int = 3
 }

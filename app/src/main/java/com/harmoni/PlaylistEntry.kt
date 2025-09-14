@@ -1,0 +1,24 @@
+// app/src/main/java/com/harmoni/PlaylistEntry.kt
+package com.harmoni
+
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+
+@Entity(
+    tableName = "playlist_entries",
+    primaryKeys = ["playlistId", "audioPath"],
+    foreignKeys = [
+        ForeignKey(
+            entity = Playlist::class,
+            parentColumns = ["id"],
+            childColumns = ["playlistId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("playlistId")]
+)
+data class PlaylistEntry(
+    val playlistId: Long,
+    val audioPath: String
+)
