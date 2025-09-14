@@ -1,4 +1,3 @@
-// app/build.gradle
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
@@ -9,7 +8,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.novaplayer"
+        applicationId "com.harmoni"
         minSdk 21
         targetSdk 34
         versionCode 1
@@ -40,15 +39,23 @@ android {
 }
 
 dependencies {
+
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.22"
+
+    // ViewPager2 + TabLayout
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
+
+    // RecyclerView
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
+
+    // CardView for item layout
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    // ExoPlayer Core + UI module
+
+    // ExoPlayer (Video & Audio)
     implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.19.1'
 

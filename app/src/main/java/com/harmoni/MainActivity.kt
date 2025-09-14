@@ -2,28 +2,26 @@
 package com.harmoni
 
 import android.Manifest
-import android.content.ContentUris
 import android.database.Cursor
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
 import com.harmoni.fragment.AudioFragment
 import com.harmoni.fragment.VideosFragment
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+import androidx.viewpager2.widget.ViewPager2
+import android.provider.MediaStore
+import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val REQUEST_READ_STORAGE = 100
 
-        // Shared lists (will move to ViewModel soon)
+        // Shared lists across app
         var videoList = listOf<Video>()
         var audioList = listOf<Audio>()
     }
@@ -83,13 +81,12 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
         if (requestCode == REQUEST_READ_STORAGE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 setupTabs()
                 scanMedia()
             } else {
-                Toast.makeText(this, "Permission denied. Cannot load media.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Permission denied.", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -97,8 +94,6 @@ class MainActivity : AppCompatActivity() {
     private fun setupTabs() {
         val adapter = MainTabsAdapter(this)
         viewPager.adapter = adapter
-
-        // Link TabLayout with ViewPager2
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             when (position) {
                 0 -> tab.text = "Videos"
@@ -113,13 +108,17 @@ class MainActivity : AppCompatActivity() {
             audioList = scanAudios()
 
             runOnUiThread {
-                Toast.makeText(this, "Found ${videoList.size} videos, ${audioList.size} songs", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    "Found ${videoList.size} videos, ${audioList.size} songs",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }.start()
     }
 
     // --- Data Classes ---
-        data class Video(
+    data class Video(
         val id: Long,
         override val title: String,
         val displayName: String?,
@@ -143,6 +142,7 @@ class MainActivity : AppCompatActivity() {
         override val subtitle: String
             get() = "by ${artist ?: "Unknown Artist"} • ${formatDuration(duration)}"
     }
+
     // --- Scanning Functions ---
     private fun scanVideos(): List<Video> {
         val videos = mutableListOf<Video>()
@@ -224,7 +224,6 @@ class MainActivity : AppCompatActivity() {
         return audios
     }
 
-    // Helper to avoid repeated getColumnIndexOrThrow
     private fun getIndices(cursor: Cursor): Map<String, Int> {
         return mapOf(
             "id" to cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID),
@@ -237,7 +236,8 @@ class MainActivity : AppCompatActivity() {
             "album" to cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ALBUM) ?: -1
         )
     }
-        // Format milliseconds to MM:SS
+
+    // Utility functions
     private fun formatDuration(ms: Int): String {
         val seconds = (ms / 1000) % 60
         val minutes = (ms / 1000 / 60) % 60
@@ -246,7 +246,6 @@ class MainActivity : AppCompatActivity() {
         else String.format("%02d:%02d", minutes, seconds)
     }
 
-    // Format bytes to KB/MB/GB
     private fun formatSize(bytes: Long): String {
         return when {
             bytes < 1024 -> "$bytes B"

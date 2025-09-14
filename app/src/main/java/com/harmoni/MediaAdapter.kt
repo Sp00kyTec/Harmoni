@@ -8,7 +8,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.harmoni.R
-import com.harmoni.fragment.VideosFragment
 
 class MediaAdapter(
     private val items: List<MediaItem>,
@@ -35,15 +34,12 @@ class MediaAdapter(
         holder.textSubtitle.text = item.subtitle
         holder.textPath.text = item.path
 
-        // Set icon based on type
         when (item) {
             is MainActivity.Video -> {
                 holder.iconType.setImageResource(R.drawable.ic_file)
-                // Later: set video-specific icon
             }
             is MainActivity.Audio -> {
                 holder.iconType.setImageResource(R.drawable.ic_file)
-                // Later: set music note icon
             }
         }
 
