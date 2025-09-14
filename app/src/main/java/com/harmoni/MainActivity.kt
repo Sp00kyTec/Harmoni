@@ -8,40 +8,37 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+import com.harmoni.fragment.AudioFragment
+import com.harmoni.fragment.VideosFragment
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var btnScanMedia: Button
-    private lateinit var textStatus: TextView
-
     companion object {
         private const val REQUEST_READ_STORAGE = 100
+
+        // Shared lists (will move to ViewModel soon)
+        var videoList = listOf<Video>()
+        var audioList = listOf<Audio>()
     }
+
+    private lateinit var tabLayout: TabLayout
+    private lateinit var viewPager: ViewPager2
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        bindViews()
-        setupClickListeners()
-        updateStatus("Ready to scan your media library")
-    }
+        tabLayout = findViewById(R.id.tab_layout)
+        viewPager = findViewById(R.id.view_pager)
 
-    private fun bindViews() {
-        btnScanMedia = findViewById(R.id.btn_scan_media)
-        textStatus = findViewById(R.id.text_status)
-    }
-
-    private fun setupClickListeners() {
-        btnScanMedia.setOnClickListener {
-            requestStoragePermission()
-        }
+        requestStoragePermission()
     }
 
     private fun requestStoragePermission() {
@@ -50,14 +47,24 @@ class MainActivity : AppCompatActivity() {
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE
             ) == PackageManager.PERMISSION_GRANTED -> {
-                onPermissionGranted()
+                setupTabs()
+                scanMedia()
             }
 
             ActivityCompat.shouldShowRequestPermissionRationale(
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE
             ) -> {
-                showPermissionRationale()
+                Toast.makeText(
+                    this,
+                    "Harmoni needs storage access to play your media.",
+                    Toast.LENGTH_LONG
+                ).show()
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    REQUEST_READ_STORAGE
+                )
             }
 
             else -> {
@@ -70,14 +77,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showPermissionRationale() {
-        Toast.makeText(
-            this,
-            "Harmoni needs access to storage to play your videos and music.",
-            Toast.LENGTH_LONG
-        ).show()
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -87,46 +86,48 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == REQUEST_READ_STORAGE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                onPermissionGranted()
+                setupTabs()
+                scanMedia()
             } else {
-                updateStatus("❌ Storage access denied")
-                Toast.makeText(this, "Cannot access media without permission.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Permission denied. Cannot load media.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun onPermissionGranted() {
-        updateStatus("🔍 Scanning videos and music...")
+    private fun setupTabs() {
+        val adapter = MainTabsAdapter(this)
+        viewPager.adapter = adapter
+
+        // Link TabLayout with ViewPager2
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            when (position) {
+                0 -> tab.text = "Videos"
+                1 -> tab.text = "Audio"
+            }
+        }.attach()
+    }
+
+    private fun scanMedia() {
         Thread {
-            val videos = scanVideos()
-            val audios = scanAudios()
+            videoList = scanVideos()
+            audioList = scanAudios()
 
             runOnUiThread {
-                val message = """
-                    ✅ Found:
-                    🎞️ ${videos.size} Videos
-                    🎵 ${audios.size} Audio Files
-                    
-                    Tap 'Scan' again to refresh.
-                """.trimIndent()
-                updateStatus(message)
-
-                Toast.makeText(this, "Scan complete!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Found ${videoList.size} videos, ${audioList.size} songs", Toast.LENGTH_SHORT).show()
             }
         }.start()
     }
 
-    // Data class to hold video info
+    // --- Data Classes ---
     data class Video(
         val id: Long,
         val title: String,
         val displayName: String?,
-        val duration: Int, // milliseconds
-        val size: Long, // bytes
+        val duration: Int,
+        val size: Long,
         val path: String
     )
 
-    // Data class to hold audio info
     data class Audio(
         val id: Long,
         val title: String,
@@ -137,6 +138,7 @@ class MainActivity : AppCompatActivity() {
         val path: String
     )
 
+    // --- Scanning Functions ---
     private fun scanVideos(): List<Video> {
         val videos = mutableListOf<Video>()
         val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -151,37 +153,24 @@ class MainActivity : AppCompatActivity() {
             MediaStore.Video.Media.DISPLAY_NAME,
             MediaStore.Video.Media.DURATION,
             MediaStore.Video.Media.SIZE,
-            MediaStore.Video.Media.DATA // deprecated but still used for path
+            MediaStore.Video.Media.DATA
         )
 
         val selection = "${MediaStore.Video.Media.SIZE} > ?"
-        val selectionArgs = arrayOf("1024") // larger than 1KB
+        val selectionArgs = arrayOf("1024")
         val sortOrder = "${MediaStore.Video.Media.DATE_ADDED} DESC"
 
         contentResolver.query(collection, projection, selection, selectionArgs, sortOrder)?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE)
-            val displayNameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-            val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
-            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
-
+            val cols = getIndices(cursor)
             while (cursor.moveToNext()) {
-                val id = cursor.getLong(idColumn)
-                val title = cursor.getString(titleColumn)
-                val displayName = cursor.getString(displayNameColumn)
-                val duration = cursor.getInt(durationColumn)
-                val size = cursor.getLong(sizeColumn)
-                val path = cursor.getString(dataColumn)
-
                 videos.add(
                     Video(
-                        id = id,
-                        title = title,
-                        displayName = displayName,
-                        duration = duration,
-                        size = size,
-                        path = path
+                        id = cursor.getLong(cols["id"]!!),
+                        title = cursor.getString(cols["title"]!!),
+                        displayName = cursor.getString(cols["displayName"]),
+                        duration = cursor.getInt(cols["duration"]!!),
+                        size = cursor.getLong(cols["size"]!!),
+                        path = cursor.getString(cols["path"]!!)
                     )
                 )
             }
@@ -212,32 +201,17 @@ class MainActivity : AppCompatActivity() {
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
         contentResolver.query(collection, projection, selection, selectionArgs, sortOrder)?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-            val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
-            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-
+            val cols = getIndices(cursor)
             while (cursor.moveToNext()) {
-                val id = cursor.getLong(idColumn)
-                val title = cursor.getString(titleColumn)
-                val artist = cursor.getString(artistColumn)
-                val album = cursor.getString(albumColumn)
-                val duration = cursor.getInt(durationColumn)
-                val size = cursor.getLong(sizeColumn)
-                val path = cursor.getString(dataColumn)
-
                 audios.add(
                     Audio(
-                        id = id,
-                        title = title,
-                        artist = artist,
-                        album = album,
-                        duration = duration,
-                        size = size,
-                        path = path
+                        id = cursor.getLong(cols["id"]!!),
+                        title = cursor.getString(cols["title"]!!),
+                        artist = cursor.getString(cols["artist"]),
+                        album = cursor.getString(cols["album"]),
+                        duration = cursor.getInt(cols["duration"]!!),
+                        size = cursor.getLong(cols["size"]!!),
+                        path = cursor.getString(cols["path"]!!)
                     )
                 )
             }
@@ -245,7 +219,17 @@ class MainActivity : AppCompatActivity() {
         return audios
     }
 
-    private fun updateStatus(text: String) {
-        textStatus.text = text
+    // Helper to avoid repeated getColumnIndexOrThrow
+    private fun getIndices(cursor: Cursor): Map<String, Int> {
+        return mapOf(
+            "id" to cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID),
+            "title" to cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.TITLE),
+            "displayName" to cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME) ?: -1,
+            "duration" to cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DURATION),
+            "size" to cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE),
+            "path" to cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA),
+            "artist" to cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ARTIST) ?: -1,
+            "album" to cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ALBUM) ?: -1
+        )
     }
 }
